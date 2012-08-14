@@ -1,27 +1,120 @@
-*.py[co]
+# -*- coding: gbk -*-
+#python version:2.6
 
-# Packages
-*.egg
-*.egg-info
-dist
-build
-eggs
-parts
-bin
-var
-sdist
-develop-eggs
-.installed.cfg
+"""
+Author:BearSword<bearsword@gmail.com>
+FileName:main.py
+Type:Utility
+Last modified:2012-07-24
 
-# Installer logs
-pip-log.txt
+Description:
+This file is for Sudoku
+"""
 
-# Unit test / coverage reports
-.coverage
-.tox
+import time
+import copy
 
-#Translations
-*.mo
+class solveSudoku:
+    def __init__(self):
+        t = time.time()
+        print 'start time:',t
+        puzzle = [0,0,5,3,0,0,0,0,0,
+                  8,0,0,0,0,0,0,2,0,
+                  0,7,0,0,1,0,5,0,0,
+                  4,0,0,0,0,5,3,0,0,
+                  0,1,0,0,7,0,0,0,6,
+                  0,0,3,2,0,0,0,8,0,
+                  0,6,0,5,0,0,0,0,9,
+                  0,0,4,0,0,0,0,3,0,
+                  0,0,0,0,0,9,7,0,0]
+        if len(puzzle) != 81:
+            print False
+            return
+        self.exhaustcell(puzzle)
+        puzzle = self.master(puzzle)
+        solution = []
+        for i in puzzle:
+            solution.append(i[0])
+        for i in xrange(9):
+            print solution[i*9:i*9+9]
+        print 'end time:',time.time()
+        print 'total time pay',(time.time())-t
+        return
 
-#Mr Developer
-.mr.developer.cfg
+    def exhaustcell(self,puzzle):
+        for i in xrange(81):
+            if puzzle[i] == 0:
+                puzzle[i] = [j for j in range(1,10)]
+            else:
+                puzzle[i] = [puzzle[i]]
+        self.deleteexist(puzzle)
+        return puzzle    
+    
+    def master(self,puzzle):
+        puzzle = [puzzle]
+        for i in xrange(100):
+            flag,puzzle = self.recursion(puzzle)
+            if flag:
+                return puzzle
+        return puzzle    
+
+    def recursion(self,puzzle):
+        newpuzzle = []
+        for i in puzzle:
+            flag = True
+            for j in xrange(81):
+                if len(i[j]) == 2:
+                    flag = False
+                    temppuzzle1 = copy.deepcopy(i)
+                    temppuzzle2 = copy.deepcopy(i)
+                    del temppuzzle1[j][1]
+                    del temppuzzle2[j][0]
+                    break
+            if flag:
+                temppuzzle = copy.deepcopy(i)
+                if self.deleteexist(temppuzzle):
+                    return True,temppuzzle
+                else:
+                    continue
+            if self.deleteexist(temppuzzle1):
+                newpuzzle.append(temppuzzle1)
+            if self.deleteexist(temppuzzle2):
+                newpuzzle.append(temppuzzle2)
+        return False,newpuzzle
+    
+    def deleteexist(self,puzzle):
+        existdict = {'row':{},'column':{},'square':{}}
+        for i in xrange(9):
+            existdict['row'][i] = {}
+            existdict['column'][i] = {}
+            existdict['square'][i] = {}
+        for i in xrange(81):
+            if len(puzzle[i]) is 1:
+                existdict['row'][i/9][puzzle[i][0]] = True
+                existdict['column'][i%9][puzzle[i][0]] = True
+                existdict['square'][i/9/3*3+i%9/3][puzzle[i][0]] = True
+        for i in xrange(81):
+            if len(puzzle[i]) != 1:
+                cellindex = 0
+                celllenth = len(puzzle[i])
+                for j in xrange(celllenth):
+                    if puzzle[i][cellindex] in existdict['row'][i/9]:
+                        del puzzle[i][cellindex]
+                        cellindex -= 1
+                    elif puzzle[i][cellindex] in existdict['column'][i%9]:
+                        del puzzle[i][cellindex]
+                        cellindex -= 1
+                    elif puzzle[i][cellindex] in existdict['square'][i/9/3*3+i%9/3]:
+                        del puzzle[i][cellindex]
+                        cellindex -= 1
+                    cellindex += 1
+                if len(puzzle[i]) == 0:
+                    return False
+                elif len(puzzle[i]) ==1:
+                    existdict['row'][i/9][puzzle[i][0]] = True
+                    existdict['column'][i%9][puzzle[i][0]] = True
+                    existdict['square'][i/9/3*3+i%9/3][puzzle[i][0]] = True
+        return True
+    
+if __name__ == '__main__':
+    solve = solveSudoku()
